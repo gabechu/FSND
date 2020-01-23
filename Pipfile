@@ -9,6 +9,8 @@ pytest = "*"
 
 [packages]
 psycopg2-binary = "*"
+flask = "*"
+flask-sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"
