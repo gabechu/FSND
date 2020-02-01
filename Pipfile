@@ -11,6 +11,10 @@ pytest = "*"
 psycopg2-binary = "*"
 flask = "*"
 flask-sqlalchemy = "*"
+python-dateutil = "*"
+babel = "*"
+flask-wtf = "*"
+flask-moment = "*"
 
 [requires]
 python_version = "3.7"
