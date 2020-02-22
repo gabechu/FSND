@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 flake8 = "*"
 pytest = "*"
+black = "*"
 
 [packages]
 psycopg2-binary = "*"
@@ -18,3 +19,6 @@ flask-moment = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
