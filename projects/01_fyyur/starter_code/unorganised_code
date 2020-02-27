@@ -7,3 +7,6 @@ pg_ctl start -l db_log.file -D db_dir
 
 # Create a db for project
 createdb fyyur
+
+# migration
+flask db init
