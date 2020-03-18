@@ -3,6 +3,7 @@
 # ----------------------------------------------------------------------------#
 
 import json
+import datetime
 import dateutil.parser
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
@@ -27,6 +28,13 @@ migrate = Migrate(app=app, db=db)
 # ----------------------------------------------------------------------------#
 # Models.
 # ----------------------------------------------------------------------------#
+venue_and_genre = db.Table(
+    "venue_and_genre",
+    db.Column(
+        'venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
+    db.Column(
+        'genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
+)
 
 
 class Venue(db.Model):
@@ -40,8 +48,18 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    show = db.relationship("Show", backref="show_venue")
+    genres = db.relationship(
+        "Genre", secondary=venue_and_genre, backref=db.backref("venues"))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+
+class Genre(db.Model):
+    __tablename__ = "Genre"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
 
 
 class Artist(db.Model):
@@ -55,11 +73,20 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    show = db.relationship("Show", backref="show_artist")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+    __tablename__ = "Show"
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey("Artist.id"))
+    venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"))
+    start_time = db.Column(db.DateTime)
+
 
 # ----------------------------------------------------------------------------#
 # Filters.
