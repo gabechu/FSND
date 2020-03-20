@@ -28,22 +28,6 @@ migrate = Migrate(app=app, db=db)
 # ----------------------------------------------------------------------------#
 # Models.
 # ----------------------------------------------------------------------------#
-venue_and_genre = db.Table(
-    "venue_and_genre",
-    db.Column(
-        'venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-    db.Column(
-        'genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
-)
-
-
-artist_and_genre = db.Table(
-    "artist_and_genre",
-    db.Column(
-        'artist_id', db.Integer, db.ForeignKey("Artist.id"), primary_key=True),
-    db.Column(
-        'genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
-)
 
 
 class Venue(db.Model):
@@ -57,18 +41,13 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    show = db.relationship("Show", backref="show_venue")
-    genres = db.relationship(
-        "Genre", secondary=venue_and_genre, backref=db.backref("venues"))
+    website = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean)
+    seeking_description = db.Column(db.String(500))
+    shows = db.relationship("Show", backref="show_venue")
+    genres = db.relationship("Genre", backref="genre_venue")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-
-class Genre(db.Model):
-    __tablename__ = "Genre"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
 
 
 class Artist(db.Model):
@@ -81,9 +60,8 @@ class Artist(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.relationship(
-        "Genre", secondary=artist_and_genre, backref=db.backref("artists"))
-    show = db.relationship("Show", backref="show_artist")
+    shows = db.relationship("Show", backref="show_artist")
+    genres = db.relationship("Genre", backref="genre_venue")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -93,9 +71,19 @@ class Show(db.Model):
     __tablename__ = "Show"
 
     id = db.Column(db.Integer, primary_key=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey("Artist.id"))
     venue_id = db.Column(db.Integer, db.ForeignKey("Venue.id"))
+    venue_name = db.Column(db.String)
+    artist_id = db.Column(db.Integer, db.ForeignKey("Artist.id"))
+    artist_name = db.Column(db.String)
+    artist_image_link = db.Column(db.String(500))
     start_time = db.Column(db.DateTime)
+
+
+class Genre(db.Model):
+    __tablename__ = "Genre"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
 
 
 # ----------------------------------------------------------------------------#
