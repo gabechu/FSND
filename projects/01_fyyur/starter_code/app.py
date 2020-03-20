@@ -37,6 +37,15 @@ venue_and_genre = db.Table(
 )
 
 
+artist_and_genre = db.Table(
+    "artist_and_genre",
+    db.Column(
+        'artist_id', db.Integer, db.ForeignKey("Artist.id"), primary_key=True),
+    db.Column(
+        'genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
+)
+
+
 class Venue(db.Model):
     __tablename__ = "Venue"
 
@@ -70,9 +79,10 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    genres = db.relationship(
+        "Genre", secondary=artist_and_genre, backref=db.backref("artists"))
     show = db.relationship("Show", backref="show_artist")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
