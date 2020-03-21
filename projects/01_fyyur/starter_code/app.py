@@ -58,9 +58,9 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    shows = db.relationship("show", backref="venue_shows")
+    shows = db.relationship("Show", backref="venue_shows")
     genres = db.relationship(
-        "genre", secondary=venue_and_genre, backref="venue_genres")
+        "Genre", secondary=venue_and_genre, backref="venue_genres")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -75,9 +75,9 @@ class Artist(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    shows = db.relationship("show", backref="artist_shows")
+    shows = db.relationship("Show", backref="artist_shows")
     genres = db.relationship(
-        "genre", secondary=artist_and_genre, backref="artist_genres")
+        "Genre", secondary=artist_and_genre, backref="artist_genres")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -87,19 +87,20 @@ class Show(db.Model):
     __tablename__ = "show"
 
     id = db.Column(db.Integer, primary_key=True)
-    venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"))
-    venue_name = db.Column(db.String)
-    artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"))
-    artist_name = db.Column(db.String)
+    venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=False)
+    venue_name = db.Column(db.String, nullable=False)
+    artist_id = db.Column(
+        db.Integer, db.ForeignKey("artist.id"), nullable=False)
+    artist_name = db.Column(db.String, nullable=False)
     artist_image_link = db.Column(db.String(500))
-    start_time = db.Column(db.DateTime)
+    start_time = db.Column(db.DateTime, nullable=False)
 
 
 class Genre(db.Model):
     __tablename__ = "genre"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String(15), unique=True, nullable=False)
 
 
 # ----------------------------------------------------------------------------#
