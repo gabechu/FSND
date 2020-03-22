@@ -2,18 +2,23 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-import json
 import datetime
-import dateutil.parser
+import json
+import logging
+from logging import FileHandler, Formatter
+from typing import List
+
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+import dateutil.parser
+from flask import (Flask, Response, flash, redirect, render_template, request,
+                   url_for)
+from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-import logging
-from logging import Formatter, FileHandler
 from flask_wtf import Form
+from sqlalchemy.orm.session import object_session
+
 from forms import *
-from flask_migrate import Migrate
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -33,14 +38,14 @@ migrate = Migrate(app=app, db=db)
 venue_and_genre = db.Table(
     "venue_and_genre",
     db.Column("venue_id", db.Integer, db.ForeignKey("venue.id")),
-    db.Column("genre_id", db.Integer, db.ForeignKey("genre.id"))
+    db.Column("genre_id", db.Integer, db.ForeignKey("genre.id")),
 )
 
 
 artist_and_genre = db.Table(
     "artist_and_genre",
     db.Column("artist_id", db.Integer, db.ForeignKey("artist.id")),
-    db.Column("genre_id", db.Integer, db.ForeignKey("genre.id"))
+    db.Column("genre_id", db.Integer, db.ForeignKey("genre.id")),
 )
 
 
@@ -59,8 +64,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
     shows = db.relationship("Show", backref="venue_shows")
-    genres = db.relationship(
-        "Genre", secondary=venue_and_genre, backref="venue_genres")
+    genres = db.relationship("Genre", secondary=venue_and_genre, backref="venue_genres")
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -80,7 +84,8 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(500))
     shows = db.relationship("Show", backref="artist_shows")
     genres = db.relationship(
-        "Genre", secondary=artist_and_genre, backref="artist_genres")
+        "Genre", secondary=artist_and_genre, backref="artist_genres"
+    )
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -92,8 +97,7 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=False)
     venue_name = db.Column(db.String, nullable=False)
-    artist_id = db.Column(
-        db.Integer, db.ForeignKey("artist.id"), nullable=False)
+    artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=False)
     artist_name = db.Column(db.String, nullable=False)
     artist_image_link = db.Column(db.String(500))
     start_time = db.Column(db.DateTime, nullable=False)
