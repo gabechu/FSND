@@ -122,6 +122,24 @@ def model_to_dict(obj: Model):
             results[col.key] = value
     return results
 
+
+def compose_show_attributes(shows: List[Model]):
+    past_shows = list(
+        filter(
+            lambda show: show.start_time <= datetime.now(),
+            shows))
+    upcoming_shows = list(
+        filter(
+            lambda show: show.start_time > datetime.now(),
+            shows))
+
+    return {
+        "past_shows": [model_to_dict(show) for show in past_shows],
+        "upcoming_shows": [model_to_dict(show) for show in upcoming_shows],
+        "past_shows_count": len(past_shows),
+        "upcoming_shows_count": len(upcoming_shows)
+    }
+
 # ----------------------------------------------------------------------------#
 # Filters.
 # ----------------------------------------------------------------------------#
@@ -204,22 +222,7 @@ def show_venue(venue_id):
     venue_dict = model_to_dict(venue_data)
     venue_shows = venue_data.shows
 
-    past_shows = list(
-        filter(
-            lambda show: show.start_time <= datetime.now(),
-            venue_shows))
-    upcoming_shows = list(
-        filter(
-            lambda show: show.start_time > datetime.now(),
-            venue_shows))
-
-    shows_dict = {
-        "past_shows": [model_to_dict(show) for show in past_shows],
-        "upcoming_shows": [model_to_dict(show) for show in upcoming_shows],
-        "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows)
-    }
-
+    shows_dict = compose_show_attributes(venue_shows)
     venue_dict.update(shows_dict)
 
     return render_template("pages/show_venue.html", venue=venue_dict)
@@ -285,6 +288,14 @@ def search_artists():
 def show_artist(artist_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
+    artist_data = Artist.query.filter_by(id=artist_id).one()
+    artist_dict = model_to_dict(artist_data)
+    artist_shows = artist_data.shows
+
+    shows_dict = compose_show_attributes(artist_shows)
+    artist_dict.update(shows_dict)
+
+    # TODO: fix image link
     data1 = {
         "id": 4,
         "name": "Guns N Petals",
