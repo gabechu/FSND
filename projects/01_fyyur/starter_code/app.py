@@ -3,21 +3,18 @@
 # ----------------------------------------------------------------------------#
 
 import datetime
-import json
 import logging
 from logging import FileHandler, Formatter
 from typing import List, Dict
 
 import babel
 import dateutil.parser
-from flask import Flask, Response, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
-from flask_wtf import Form
 from sqlalchemy import func, inspect
-from sqlalchemy.orm.session import object_session
 
 from forms import *
 
@@ -67,8 +64,6 @@ class Venue(db.Model):
     shows = db.relationship("Show", backref="venue_shows")
     genres = db.relationship("Genre", secondary=venue_and_genre, backref="venue_genres")
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
 
 class Artist(db.Model):
     __tablename__ = "artist"
@@ -88,10 +83,7 @@ class Artist(db.Model):
         "Genre", secondary=artist_and_genre, backref="artist_genres"
     )
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
     __tablename__ = "show"
 
@@ -112,7 +104,7 @@ class Genre(db.Model):
     name = db.Column(db.String(15), unique=True, nullable=False)
 
 
-def model_to_dict(obj: Model):
+def model_to_dict(obj: Model) -> Dict:
     results = dict()
     for col in inspect(obj).mapper.column_attrs:
         value = getattr(obj, col.key)
@@ -123,7 +115,7 @@ def model_to_dict(obj: Model):
     return results
 
 
-def compose_show_attributes(shows: List[Model]):
+def compose_show_attributes(shows: List[Model]) -> Dict:
     past_shows = list(filter(lambda show: show.start_time <= datetime.now(), shows))
     upcoming_shows = list(filter(lambda show: show.start_time > datetime.now(), shows))
 
@@ -171,8 +163,6 @@ def index():
 
 @app.route("/venues")
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
     groups = (
         Venue.query.with_entities(Venue.city, Venue.state, func.array_agg(Venue.id))
         .group_by(Venue.city, Venue.state)
@@ -186,6 +176,12 @@ def venues():
             venue_data = Venue.query.filter_by(id=venue_id).one()
             venue_dict = model_to_dict(venue_data)
             venue_dict = filter_dict_by_keys(venue_dict, ["id", "name"])
+
+            venue_shows = venue_data.shows
+            shows_dict = compose_show_attributes(venue_shows)
+            shows_dict = {"num_upcoming_shows": shows_dict["upcoming_shows_count"]}
+
+            venue_dict.update(shows_dict)
             venues.append(venue_dict)
         data.append({"city": group[0], "state": group[1], "venues": venues})
 
@@ -210,8 +206,6 @@ def search_venues():
 
 @app.route("/venues/<int:venue_id>")
 def show_venue(venue_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
     venue_data = Venue.query.filter_by(id=venue_id).one()
     venue_dict = model_to_dict(venue_data)
     venue_shows = venue_data.shows
@@ -280,8 +274,6 @@ def search_artists():
 
 @app.route("/artists/<int:artist_id>")
 def show_artist(artist_id):
-    # shows the venue page with the given venue_id
-    # TODO: replace with real venue data from the venues table, using venue_id
     artist_data = Artist.query.filter_by(id=artist_id).one()
     artist_dict = model_to_dict(artist_data)
     artist_shows = artist_data.shows
