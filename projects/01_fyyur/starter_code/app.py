@@ -6,19 +6,18 @@ import datetime
 import json
 import logging
 from logging import FileHandler, Formatter
-from typing import List
+from typing import List, Dict
 
 import babel
 import dateutil.parser
-from flask import (Flask, Response, flash, redirect, render_template, request,
-                   url_for)
+from flask import Flask, Response, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import Form
-from sqlalchemy.orm.session import object_session
 from flask_sqlalchemy.model import Model
-from sqlalchemy import inspect
+from flask_wtf import Form
+from sqlalchemy import func, inspect
+from sqlalchemy.orm.session import object_session
 
 from forms import *
 
@@ -125,21 +124,16 @@ def model_to_dict(obj: Model):
 
 
 def compose_show_attributes(shows: List[Model]):
-    past_shows = list(
-        filter(
-            lambda show: show.start_time <= datetime.now(),
-            shows))
-    upcoming_shows = list(
-        filter(
-            lambda show: show.start_time > datetime.now(),
-            shows))
+    past_shows = list(filter(lambda show: show.start_time <= datetime.now(), shows))
+    upcoming_shows = list(filter(lambda show: show.start_time > datetime.now(), shows))
 
     return {
         "past_shows": [model_to_dict(show) for show in past_shows],
         "upcoming_shows": [model_to_dict(show) for show in upcoming_shows],
         "past_shows_count": len(past_shows),
-        "upcoming_shows_count": len(upcoming_shows)
+        "upcoming_shows_count": len(upcoming_shows),
     }
+
 
 # ----------------------------------------------------------------------------#
 # Filters.
@@ -153,6 +147,10 @@ def format_datetime(value, format="medium"):
     elif format == "medium":
         format = "EE MM, dd, y h:mma"
     return babel.dates.format_datetime(date, format)
+
+
+def filter_dict_by_keys(input_dict: Dict, keep_keys: List):
+    return {key: value for key, value in input_dict.items() if key in keep_keys}
 
 
 app.jinja_env.filters["datetime"] = format_datetime
@@ -175,27 +173,22 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [
-        {
-            "city": "San Francisco",
-            "state": "CA",
-            "venues": [
-                {"id": 1, "name": "The Musical Hop", "num_upcoming_shows": 0,},
-                {
-                    "id": 3,
-                    "name": "Park Square Live Music & Coffee",
-                    "num_upcoming_shows": 1,
-                },
-            ],
-        },
-        {
-            "city": "New York",
-            "state": "NY",
-            "venues": [
-                {"id": 2, "name": "The Dueling Pianos Bar", "num_upcoming_shows": 0,}
-            ],
-        },
-    ]
+    groups = (
+        Venue.query.with_entities(Venue.city, Venue.state, func.array_agg(Venue.id))
+        .group_by(Venue.city, Venue.state)
+        .all()
+    )
+
+    data = []
+    for group in groups:
+        venues = []
+        for venue_id in group[2]:
+            venue_data = Venue.query.filter_by(id=venue_id).one()
+            venue_dict = model_to_dict(venue_data)
+            venue_dict = filter_dict_by_keys(venue_dict, ["id", "name"])
+            venues.append(venue_dict)
+        data.append({"city": group[0], "state": group[1], "venues": venues})
+
     return render_template("pages/venues.html", areas=data)
 
 
