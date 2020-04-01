@@ -228,38 +228,44 @@ def create_venue_form():
 
 @app.route("/venues/create", methods=["POST"])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-    data = request.form.to_dict()
-    genres = data.pop("genres")
+    form_data = request.form.to_dict()
+    venue_name = request.form["name"]
+    genres = form_data.pop("genres")
     if isinstance(genres, str):
         genres = [genres]
 
-    venue = Venue(**data)
+    venue = Venue(**form_data)
     venue.genres = Genre.query.filter(Genre.name.in_(genres)).all()
 
     try:
         db.session.add(venue)
         db.session.commit()
         # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-        flash("Venue " + request.form["name"] + " was successfully listed!")
+        flash(f"Venue {venue_name} was successfully listed!")
     except:
         db.session.rollback()
-        flash(
-            "An error occurred. Venue " + request.form["name"] + " could not be listed."
-        )
+        flash(f"An error occurred. Venue {venue_name} could not be listed.")
 
     return render_template("pages/home.html")
 
 
-@app.route("/venues/<venue_id>", methods=["DELETE"])
+@app.route("/venues/<venue_id>", methods=["POST"])
 def delete_venue(venue_id):
     # TODO: Complete this endpoint for taking a venue_id, and using
     # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+    try:
+        venue = Venue.query.filter_by(id=venue_id).one()
+        db.session.delete(venue)
+        db.session.commit()
+        flash(f"Venue id {venue_id} was successfully deleted!")
+    except:
+        db.session.rollback()
+        flash(f"An error occurred. Venue id {venue_id} could not be deleted.")
+
+    return render_template("pages/home.html")
 
 
 #  Artists
