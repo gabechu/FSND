@@ -333,28 +333,31 @@ def edit_artist_submission(artist_id):
 @app.route("/venues/<int:venue_id>/edit", methods=["GET"])
 def edit_venue(venue_id):
     form = VenueForm()
-    venue = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-    }
-    # TODO: populate form with values from venue with ID <venue_id>
-    return render_template("forms/edit_venue.html", form=form, venue=venue)
+    venue_data = Venue.query.filter_by(id=venue_id).one()
+    venue_dict = model_to_dict(venue_data)
+    return render_template("forms/edit_venue.html", form=form, venue=venue_dict)
 
 
 @app.route("/venues/<int:venue_id>/edit", methods=["POST"])
 def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
+    form_data = request.form.to_dict()
+    venue_name = request.form["name"]
+    genres = form_data.pop("genres")
+    if isinstance(genres, str):
+        genres = [genres]
+
+    venue = Venue.query.filter_by(id=venue_id).one()
+    venue.genres = Genre.query.filter(Genre.name.in_(genres)).all()
+    for key, value in form_data.items():
+        setattr(venue, key, value)
+
+    try:
+        db.session.commit()
+        flash(f"Artist {venue_name} was successfully updated!")
+    except:
+        db.session.rollback()
+        flash(f"An error occurred. Artist {venue_name} could not be updated.")
+
     return redirect(url_for("show_venue", venue_id=venue_id))
 
 
