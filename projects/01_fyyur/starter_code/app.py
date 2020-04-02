@@ -240,7 +240,6 @@ def create_venue_submission():
     try:
         db.session.add(venue)
         db.session.commit()
-        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
         flash(f"Venue {venue_name} was successfully listed!")
     except:
         db.session.rollback()
@@ -323,7 +322,6 @@ def edit_artist_submission(artist_id):
 
     try:
         db.session.commit()
-        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
         flash(f"Artist {artist_name} was successfully updated!")
     except:
         db.session.rollback()
@@ -384,7 +382,6 @@ def create_artist_submission():
     try:
         db.session.add(artist)
         db.session.commit()
-        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
         flash(f"Artist {artist_name} was successfully listed!")
     except:
         db.session.rollback()
@@ -423,7 +420,6 @@ def create_show_submission():
     flash("Show was successfully listed!")
     # TODO: on unsuccessful db insert, flash an error instead.
     # e.g., flash('An error occurred. Show could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template("pages/home.html")
 
 
