@@ -310,8 +310,24 @@ def edit_artist(artist_id):
 
 @app.route("/artists/<int:artist_id>/edit", methods=["POST"])
 def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
+    form_data = request.form.to_dict()
+    artist_name = request.form["name"]
+    genres = form_data.pop("genres")
+    if isinstance(genres, str):
+        genres = [genres]
+
+    artist = Artist.query.filter_by(id=artist_id).one()
+    artist.genres = Genre.query.filter(Genre.name.in_(genres)).all()
+    for key, value in form_data.items():
+        setattr(artist, key, value)
+
+    try:
+        db.session.commit()
+        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+        flash(f"Artist {artist_name} was successfully updated!")
+    except:
+        db.session.rollback()
+        flash(f"An error occurred. Artist {artist_name} could not be updated.")
 
     return redirect(url_for("show_artist", artist_id=artist_id))
 
