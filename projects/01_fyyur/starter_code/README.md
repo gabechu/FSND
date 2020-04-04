@@ -110,34 +110,51 @@ Looking to go above and beyond? This is the right section for you! Here are some
 
 Best of luck in your final project! Fyyur depends on you!
 
-### Development Setup
-
-First, [install Flask](http://flask.pocoo.org/docs/1.0/installation/#install-flask) if you haven't already.
-
-  ```
-  $ cd ~
-  $ sudo pip3 install Flask
-  ```
 
 To start and run the local development server,
 
-1. Initialize and activate a virtualenv:
-  ```
-  $ cd YOUR_PROJECT_DIRECTORY_PATH/
-  $ virtualenv --no-site-packages env
-  $ source env/bin/activate
-  ```
+1. Initialize and activate a virtualenv: this project is created with `pyenv` and `poetry`.
 
 2. Install the dependencies:
-  ```
-  $ pip install -r requirements.txt
+  ```bash
+  poetry install
   ```
 
 3. Run the development server:
-  ```
-  $ export FLASK_APP=myapp
-  $ export FLASK_ENV=development # enables debug mode
-  $ python3 app.py
+  ```bash
+  poetry shell
+  export FLASK_APP=myapp
+  export FLASK_ENV=development # enables debug mode
+  python app.py
   ```
 
 4. Navigate to Home page [http://localhost:5000](http://localhost:5000)
+
+#### Set Postgres Server
+1. Initiate a db cluster
+```bash
+initdb -D db
+```
+
+2. Start server
+```bash
+pg_ctl start -l db_log.file -D db_dir
+```
+
+3. Create a db for project
+```bash
+createdb fyyur
+```
+
+4. Migration
+```bash
+flask db init
+flask db migrate -m "init fyyur db"
+flask db upgrade
+```
+
+5. Close server
+```bash
+pg_ctl stop -D db_dir
+```
+

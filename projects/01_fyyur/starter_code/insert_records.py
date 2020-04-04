@@ -2,7 +2,6 @@ from app import Artist, Genre, Show, Venue, db
 
 
 def insert_genres():
-    # TODO: add more genres read from 
     genres = {
         "Jazz",
         "Reggae",
