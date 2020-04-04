@@ -201,7 +201,7 @@ def add_venue_show_relationships():
     venue_2.shows = []
 
     venue_3 = Venue.query.filter_by(id=3).one()
-    venue_3.shows = Show.query.filter(venue_id=3).all()
+    venue_3.shows = Show.query.filter_by(venue_id=3).all()
 
     db.session.add_all([venue_1, venue_2, venue_3])
     db.session.commit()
@@ -222,13 +222,15 @@ def add_artist_show_relationships():
 
 
 if __name__ == "__main__":
-    # insert_genres()  # done
-    # insert_venues()  # done
-    # insert_artists()  # done
-    # insert_shows()  # done
+    insert_genres()  # done
+    insert_venues()  # done
+    insert_artists()  # done
+    insert_shows()  # done
 
-    # add_venue_genres_relationships()  # done
-    # add_artist_genres_relationships()  # done
-    # add_venue_show_relationships()  # done
-    # add_artist_show_relationships  # done
-    pass
+    add_venue_genres_relationships()  # done
+    add_artist_genres_relationships()  # done
+    add_venue_show_relationships()  # done
+    add_artist_show_relationships  # done
+
+# Nuke postgres tables
+# truncate artist, artist_and_genre, genre, show, venue, venue_and_genre cascade;
