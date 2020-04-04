@@ -5,16 +5,18 @@
 import datetime
 import logging
 from logging import FileHandler, Formatter
-from typing import List, Dict
+from typing import Dict, List
 
 import babel
 import dateutil.parser
+from dateutil import parser
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 from sqlalchemy import func, inspect
+from sqlalchemy.orm import exc
 
 from forms import *
 
@@ -413,13 +415,38 @@ def create_shows():
 
 @app.route("/shows/create", methods=["POST"])
 def create_show_submission():
-    # called to create new shows in the db, upon submitting new show listing form
-    # TODO: insert form data as a new Show record in the db, instead
+    form_data = request.form.to_dict()
+    try:
+        venue = Venue.query.filter_by(id=form_data['venue_id']).one()
+    except exc.NoResultFound:
+        raise exc.NoResultFound(f"No venue id = {form_data['venue_id']} was found].")
 
-    # on successful db insert, flash success
-    flash("Show was successfully listed!")
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Show could not be listed.')
+    try:
+        artist = Artist.query.filter_by(id=form_data['artist_id']).one()
+    except exc.NoResultFound:
+        raise exc.NoResultFound(f"No artist id = {form_data['artist_id']} was found.'")
+
+    data = {
+        "venue_id": venue.id,
+        "venue_name": venue.name,
+        "venue_image_link": venue.image_link,
+        "artist_id": artist.id,
+        "artist_name": artist.name,
+        "artist_image_link": artist.image_link,
+        "start_time": parser.parse(form_data['start_time']).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    }
+
+    show = Show(**data)
+
+    # FIXME: primary key error
+    try:
+        db.session.add(show)
+        db.session.commit()
+        flash("Show was successfully listed!")
+    except:
+        db.session.rollback()
+        flash('An error occurred. Show could not be listed.')
+
     return render_template("pages/home.html")
 
 
