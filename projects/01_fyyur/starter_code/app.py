@@ -2,10 +2,10 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-import datetime
 import logging
+from datetime import datetime
 from logging import FileHandler, Formatter
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import babel
 import dateutil.parser
@@ -17,6 +17,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 from sqlalchemy import func, inspect
 from sqlalchemy.orm import exc
+from werkzeug.exceptions import InternalServerError, NotFound
 from werkzeug.wrappers import Response
 
 from forms import ArtistForm, ShowForm, VenueForm
@@ -343,7 +344,7 @@ def edit_venue(venue_id: int) -> str:
 
 
 @app.route("/venues/<int:venue_id>/edit", methods=["POST"])
-def edit_venue_submission(venue_id: int) -> str:
+def edit_venue_submission(venue_id: int) -> Response:
     form_data = request.form.to_dict()
     venue_name = request.form["name"]
     genres = form_data.pop("genres")
@@ -451,12 +452,12 @@ def create_show_submission() -> str:
 
 
 @app.errorhandler(404)
-def not_found_error(error):
+def not_found_error(error: NotFound) -> Tuple[str, int]:
     return render_template("errors/404.html"), 404
 
 
 @app.errorhandler(500)
-def server_error(error):
+def server_error(error: InternalServerError) -> Tuple[str, int]:
     return render_template("errors/500.html"), 500
 
 
