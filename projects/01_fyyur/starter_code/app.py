@@ -399,9 +399,6 @@ def create_artist_submission():
 
 @app.route("/shows")
 def shows():
-    # displays list of shows at /shows
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
     shows_data = Show.query.all()
     shows_dict = [model_to_dict(show) for show in shows_data]
     return render_template("pages/shows.html", shows=shows_dict)
