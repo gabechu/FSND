@@ -16,12 +16,14 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 from sqlalchemy import func, inspect
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import exc
 from werkzeug.exceptions import InternalServerError, NotFound
 from werkzeug.wrappers import Response
 
 from forms import ArtistForm, ShowForm, VenueForm
+from models import Artist, Genre, Show, Venue
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -33,7 +35,6 @@ app.config.from_object("config")
 db = SQLAlchemy(app)
 migrate = Migrate(app=app, db=db)
 BaseModel: DeclarativeMeta = db.Model
-from models import Artist, Genre, Show, Venue
 
 
 def model_to_dict(obj: Model) -> Dict:
@@ -123,16 +124,14 @@ def venues() -> str:
 @app.route("/venues/search", methods=["POST"])
 def search_venues() -> str:
     search_term = request.form.get("search_term", "")
-    matches = Venue.query.filter(Venue.name.ilike(f'%{search_term}%')).all()
+    matches = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).all()
 
     response = {
         "count": len(matches),
         "data": [{"id": item.id, "name": item.name} for item in matches],
     }
     return render_template(
-        "pages/search_venues.html",
-        results=response,
-        search_term=search_term,
+        "pages/search_venues.html", results=response, search_term=search_term,
     )
 
 
@@ -173,7 +172,7 @@ def create_venue_submission() -> str:
         db.session.add(venue)
         db.session.commit()
         flash(f"Venue {venue_name} was successfully listed!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
         flash(f"An error occurred. Venue {venue_name} could not be listed.")
 
@@ -187,7 +186,7 @@ def delete_venue(venue_id: int) -> str:
         db.session.delete(venue)
         db.session.commit()
         flash(f"Venue id {venue_id} was successfully deleted!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
         flash(f"An error occurred. Venue id {venue_id} could not be deleted.")
 
@@ -204,7 +203,7 @@ def artists() -> str:
 @app.route("/artists/search", methods=["POST"])
 def search_artists() -> str:
     search_term = request.form.get("search_term", "")
-    matches = Artist.query.filter(Artist.name.ilike(f'%{search_term}%')).all()
+    matches = Artist.query.filter(Artist.name.ilike(f"%{search_term}%")).all()
 
     response = {
         "count": len(matches),
@@ -212,9 +211,7 @@ def search_artists() -> str:
     }
 
     return render_template(
-        "pages/search_artists.html",
-        results=response,
-        search_term=search_term,
+        "pages/search_artists.html", results=response, search_term=search_term,
     )
 
 
@@ -256,7 +253,7 @@ def edit_artist_submission(artist_id: int) -> Response:
     try:
         db.session.commit()
         flash(f"Artist {artist_name} was successfully updated!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
         flash(f"An error occurred. Artist {artist_name} could not be updated.")
 
@@ -287,7 +284,7 @@ def edit_venue_submission(venue_id: int) -> Response:
     try:
         db.session.commit()
         flash(f"Artist {venue_name} was successfully updated!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
         flash(f"An error occurred. Artist {venue_name} could not be updated.")
 
@@ -319,7 +316,7 @@ def create_artist_submission() -> str:
         db.session.add(artist)
         db.session.commit()
         flash(f"Artist {artist_name} was successfully listed!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
         flash(f"An error occurred. Artist {artist_name} could not be listed.")
 
@@ -347,12 +344,12 @@ def create_shows() -> str:
 def create_show_submission() -> str:
     form_data = request.form.to_dict()
     try:
-        venue = Venue.query.filter_by(id=form_data['venue_id']).one()
+        venue = Venue.query.filter_by(id=form_data["venue_id"]).one()
     except exc.NoResultFound:
         raise exc.NoResultFound(f"No venue id = {form_data['venue_id']} was found].")
 
     try:
-        artist = Artist.query.filter_by(id=form_data['artist_id']).one()
+        artist = Artist.query.filter_by(id=form_data["artist_id"]).one()
     except exc.NoResultFound:
         raise exc.NoResultFound(f"No artist id = {form_data['artist_id']} was found.'")
 
@@ -363,7 +360,9 @@ def create_show_submission() -> str:
         "artist_id": artist.id,
         "artist_name": artist.name,
         "artist_image_link": artist.image_link,
-        "start_time": parser.parse(form_data['start_time']).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        "start_time": (
+            parser.parse(form_data["start_time"]).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        ),
     }
 
     show = Show(**data)
@@ -372,9 +371,9 @@ def create_show_submission() -> str:
         db.session.add(show)
         db.session.commit()
         flash("Show was successfully listed!")
-    except:
+    except SQLAlchemyError:
         db.session.rollback()
-        flash('An error occurred. Show could not be listed.')
+        flash("An error occurred. Show could not be listed.")
 
     return render_template("pages/home.html")
 
