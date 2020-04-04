@@ -17,8 +17,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 from sqlalchemy import func, inspect
 from sqlalchemy.orm import exc
+from werkzeug.wrappers import Response
 
-from forms import *
+from forms import ArtistForm, ShowForm, VenueForm
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -134,7 +135,7 @@ def compose_show_attributes(shows: List[Model]) -> Dict:
 # ----------------------------------------------------------------------------#
 
 
-def format_datetime(value, format="medium"):
+def format_datetime(value: str, format: str = "medium") -> str:
     date = dateutil.parser.parse(value)
     if format == "full":
         format = "EEEE MMMM, d, y 'at' h:mma"
@@ -143,7 +144,7 @@ def format_datetime(value, format="medium"):
     return babel.dates.format_datetime(date, format)
 
 
-def filter_dict_by_keys(input_dict: Dict, keep_keys: List):
+def filter_dict_by_keys(input_dict: Dict, keep_keys: List) -> Dict:
     return {key: value for key, value in input_dict.items() if key in keep_keys}
 
 
@@ -155,7 +156,7 @@ app.jinja_env.filters["datetime"] = format_datetime
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return render_template("pages/home.html")
 
 
@@ -164,7 +165,7 @@ def index():
 
 
 @app.route("/venues")
-def venues():
+def venues() -> str:
     groups = (
         Venue.query.with_entities(Venue.city, Venue.state, func.array_agg(Venue.id))
         .group_by(Venue.city, Venue.state)
@@ -191,7 +192,7 @@ def venues():
 
 
 @app.route("/venues/search", methods=["POST"])
-def search_venues():
+def search_venues() -> str:
     search_term = request.form.get("search_term", "")
     matches = Venue.query.filter(Venue.name.ilike(f'%{search_term}%')).all()
 
@@ -207,7 +208,7 @@ def search_venues():
 
 
 @app.route("/venues/<int:venue_id>")
-def show_venue(venue_id):
+def show_venue(venue_id: int) -> str:
     venue_data = Venue.query.filter_by(id=venue_id).one()
     venue_dict = model_to_dict(venue_data)
     venue_shows = venue_data.shows
@@ -223,13 +224,13 @@ def show_venue(venue_id):
 
 
 @app.route("/venues/create", methods=["GET"])
-def create_venue_form():
+def create_venue_form() -> str:
     form = VenueForm()
     return render_template("forms/new_venue.html", form=form)
 
 
 @app.route("/venues/create", methods=["POST"])
-def create_venue_submission():
+def create_venue_submission() -> str:
     form_data = request.form.to_dict()
     venue_name = request.form["name"]
     genres = form_data.pop("genres")
@@ -251,7 +252,7 @@ def create_venue_submission():
 
 
 @app.route("/venues/<venue_id>", methods=["POST"])
-def delete_venue(venue_id):
+def delete_venue(venue_id: int) -> str:
     try:
         venue = Venue.query.filter_by(id=venue_id).one()
         db.session.delete(venue)
@@ -267,12 +268,12 @@ def delete_venue(venue_id):
 #  Artists
 #  ----------------------------------------------------------------
 @app.route("/artists")
-def artists():
+def artists() -> str:
     return render_template("pages/artists.html", artists=Artist.query.all())
 
 
 @app.route("/artists/search", methods=["POST"])
-def search_artists():
+def search_artists() -> str:
     search_term = request.form.get("search_term", "")
     matches = Artist.query.filter(Artist.name.ilike(f'%{search_term}%')).all()
 
@@ -289,7 +290,7 @@ def search_artists():
 
 
 @app.route("/artists/<int:artist_id>")
-def show_artist(artist_id):
+def show_artist(artist_id: int) -> str:
     artist_data = Artist.query.filter_by(id=artist_id).one()
     artist_dict = model_to_dict(artist_data)
     artist_shows = artist_data.shows
@@ -303,7 +304,7 @@ def show_artist(artist_id):
 #  Update
 #  ----------------------------------------------------------------
 @app.route("/artists/<int:artist_id>/edit", methods=["GET"])
-def edit_artist(artist_id):
+def edit_artist(artist_id: int) -> str:
     form = ArtistForm()
     artist_data = Artist.query.filter_by(id=artist_id).one()
     artist_dict = model_to_dict(artist_data)
@@ -311,7 +312,7 @@ def edit_artist(artist_id):
 
 
 @app.route("/artists/<int:artist_id>/edit", methods=["POST"])
-def edit_artist_submission(artist_id):
+def edit_artist_submission(artist_id: int) -> Response:
     form_data = request.form.to_dict()
     artist_name = request.form["name"]
     genres = form_data.pop("genres")
@@ -334,7 +335,7 @@ def edit_artist_submission(artist_id):
 
 
 @app.route("/venues/<int:venue_id>/edit", methods=["GET"])
-def edit_venue(venue_id):
+def edit_venue(venue_id: int) -> str:
     form = VenueForm()
     venue_data = Venue.query.filter_by(id=venue_id).one()
     venue_dict = model_to_dict(venue_data)
@@ -342,7 +343,7 @@ def edit_venue(venue_id):
 
 
 @app.route("/venues/<int:venue_id>/edit", methods=["POST"])
-def edit_venue_submission(venue_id):
+def edit_venue_submission(venue_id: int) -> str:
     form_data = request.form.to_dict()
     venue_name = request.form["name"]
     genres = form_data.pop("genres")
@@ -369,13 +370,13 @@ def edit_venue_submission(venue_id):
 
 
 @app.route("/artists/create", methods=["GET"])
-def create_artist_form():
+def create_artist_form() -> str:
     form = ArtistForm()
     return render_template("forms/new_artist.html", form=form)
 
 
 @app.route("/artists/create", methods=["POST"])
-def create_artist_submission():
+def create_artist_submission() -> str:
     form_data = request.form.to_dict()
     artist_name = request.form["name"]
     genres = form_data.pop("genres")
@@ -401,21 +402,20 @@ def create_artist_submission():
 
 
 @app.route("/shows")
-def shows():
+def shows() -> str:
     shows_data = Show.query.all()
     shows_dict = [model_to_dict(show) for show in shows_data]
     return render_template("pages/shows.html", shows=shows_dict)
 
 
 @app.route("/shows/create")
-def create_shows():
-    # renders form. do not touch.
+def create_shows() -> str:
     form = ShowForm()
     return render_template("forms/new_show.html", form=form)
 
 
 @app.route("/shows/create", methods=["POST"])
-def create_show_submission():
+def create_show_submission() -> str:
     form_data = request.form.to_dict()
     try:
         venue = Venue.query.filter_by(id=form_data['venue_id']).one()
