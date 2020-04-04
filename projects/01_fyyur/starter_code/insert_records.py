@@ -21,7 +21,6 @@ def insert_genres():
 
 def insert_shows():
     show_1 = Show(
-        id=1,
         venue_id=1,
         venue_name="The Musical Hop",
         venue_image_link="https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
@@ -32,7 +31,6 @@ def insert_shows():
     )
 
     show_2 = Show(
-        id=2,
         venue_id=3,
         venue_name="Park Square Live Music & Coffee",
         venue_image_link="https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
@@ -43,7 +41,6 @@ def insert_shows():
     )
 
     show_3 = Show(
-        id=3,
         venue_id=3,
         venue_name="Park Square Live Music & Coffee",
         venue_image_link="https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
@@ -54,7 +51,6 @@ def insert_shows():
     )
 
     show_4 = Show(
-        id=4,
         venue_id=3,
         venue_name="Park Square Live Music & Coffee",
         venue_image_link="https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
@@ -65,7 +61,6 @@ def insert_shows():
     )
 
     show_5 = Show(
-        id=5,
         venue_id=3,
         venue_name="Park Square Live Music & Coffee",
         venue_image_link="https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
@@ -200,13 +195,13 @@ def add_artist_genres_relationships():
 
 def add_venue_show_relationships():
     venue_1 = Venue.query.filter_by(id=1).one()
-    venue_1.shows = Show.query.filter(Show.id.in_([1])).all()
+    venue_1.shows = Show.query.filter_by(venue_id=1).all()
 
     venue_2 = Venue.query.filter_by(id=2).one()
     venue_2.shows = []
 
     venue_3 = Venue.query.filter_by(id=3).one()
-    venue_3.shows = Show.query.filter(Show.id.in_([2, 3, 4, 5])).all()
+    venue_3.shows = Show.query.filter(venue_id=3).all()
 
     db.session.add_all([venue_1, venue_2, venue_3])
     db.session.commit()
@@ -214,13 +209,13 @@ def add_venue_show_relationships():
 
 def add_artist_show_relationships():
     artist_4 = Artist.query.filter_by(id=4).one()
-    artist_4.shows = Show.query.filter(Show.id.in_([1])).all()
+    artist_4.shows = Show.query.filter_by(artist_id=4).all()
 
     artist_5 = Artist.query.filter_by(id=5).one()
-    artist_5.shows = Show.query.filter(Show.id.in_([2])).all()
+    artist_5.shows = Show.query.filter_by(artist_id=5).all()
 
     artist_6 = Artist.query.filter_by(id=6).one()
-    artist_6.shows = Show.query.filter(Show.id.in_([3, 4, 5])).all()
+    artist_6.shows = Show.query.filter_by(artist_id=6).all()
 
     db.session.add_all([artist_4, artist_5, artist_6])
     db.session.commit()
