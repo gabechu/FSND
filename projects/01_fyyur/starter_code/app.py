@@ -16,6 +16,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import Model
 from sqlalchemy import func, inspect
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import exc
 from werkzeug.exceptions import InternalServerError, NotFound
 from werkzeug.wrappers import Response
@@ -31,6 +32,7 @@ moment = Moment(app)
 app.config.from_object("config")
 db = SQLAlchemy(app)
 migrate = Migrate(app=app, db=db)
+BaseModel: DeclarativeMeta = db.Model
 
 # ----------------------------------------------------------------------------#
 # Models.
@@ -51,7 +53,7 @@ artist_and_genre = db.Table(
 )
 
 
-class Venue(db.Model):
+class Venue(BaseModel):
     __tablename__ = "venue"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -69,7 +71,7 @@ class Venue(db.Model):
     genres = db.relationship("Genre", secondary=venue_and_genre, backref="venue_genres")
 
 
-class Artist(db.Model):
+class Artist(BaseModel):
     __tablename__ = "artist"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -88,7 +90,7 @@ class Artist(db.Model):
     )
 
 
-class Show(db.Model):
+class Show(BaseModel):
     __tablename__ = "show"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -101,7 +103,7 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
 
 
-class Genre(db.Model):
+class Genre(BaseModel):
     __tablename__ = "genre"
 
     id = db.Column(db.Integer, primary_key=True)
