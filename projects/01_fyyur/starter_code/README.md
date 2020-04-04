@@ -113,16 +113,16 @@ Best of luck in your final project! Fyyur depends on you!
 
 To start and run the local development server,
 
-1. Initialize and activate a virtualenv: this project is created with `pyenv` and `poetry`.
+1. Initialize and activate a virtualenv: this project is created with `pyenv` and `pipenv`.
 
 2. Install the dependencies:
   ```bash
-  poetry install
+  pipenv install
   ```
 
 3. Run the development server:
   ```bash
-  poetry shell
+  pipenv shell
   export FLASK_APP=myapp
   export FLASK_ENV=development # enables debug mode
   python app.py
