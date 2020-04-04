@@ -438,7 +438,6 @@ def create_show_submission():
 
     show = Show(**data)
 
-    # FIXME: primary key error
     try:
         db.session.add(show)
         db.session.commit()
